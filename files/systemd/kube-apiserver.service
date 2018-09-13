@@ -1,0 +1,46 @@
+################################################################################
+#               ___           ___           ___           ___
+#              /\  \         /\  \         /\  \         /\  \
+#             /::\  \        \:\  \       /::\  \       /::\  \
+#            /:/\ \  \        \:\  \     /:/\:\  \     /:/\:\  \
+#           _\:\~\ \  \       /::\  \   /:/  \:\  \   /::\~\:\  \
+#          /\ \:\ \ \__\     /:/\:\__\ /:/__/ \:\__\ /:/\:\ \:\__\
+#          \:\ \:\ \/__/    /:/  \/__/ \:\  \ /:/  / \/__\:\/:/  /
+#           \:\ \:\__\     /:/  /       \:\  /:/  /       \::/  /
+#            \:\/:/  /     \/__/         \:\/:/  /         \/__/
+#             \::/  /                     \::/  /
+#              \/__/                       \/__/
+#
+# This file is managed by Chef!  Manual modifications will be lost on the next
+# chef run.  If you need to make changes to this file, please make them in the
+# cookbook and commit them to source control.
+#
+################################################################################
+
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=network.target
+After=etcd.service
+
+[Service]
+EnvironmentFile=-/etc/kubernetes/config
+EnvironmentFile=-/etc/kubernetes/apiserver
+User=kube
+ExecStart=/usr/bin/kube-apiserver \
+	    $KUBE_LOG_LEVEL \
+	    $KUBE_ETCD_SERVERS \
+	    $KUBE_API_ADDRESS \
+	    $KUBE_API_PORT \
+      $KUBE_BIND_ADDRESS \
+	    $KUBELET_PORT \
+	    $KUBE_ALLOW_PRIV \
+	    $KUBE_SERVICE_ADDRESSES \
+	    $KUBE_ADMISSION_CONTROL \
+	    $KUBE_API_ARGS
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+AllCops:
+  Excludes:
+    - 'Vagrantfile'
+    - 'files/default/Vboxipaddress.rb'
+    - 'test/integration/etcd/setup.rb'

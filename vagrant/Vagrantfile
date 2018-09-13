@@ -1,0 +1,199 @@
+# -*- mode: ruby -*-
+# See README.md for usage!
+
+require 'yaml'
+vagrant_config = YAML.load_file('config.yml')
+
+Vagrant.require_version ">= 1.6.0"
+
+puts '#########################################################################################'
+puts '#'
+puts "# ==> Starting Kubernetes #{vagrant_config['kubernetes']['version']} on #{vagrant_config['general']['os']} using Chef #{vagrant_config['general']['chef_version']}!"
+puts "# ==> Using installation method #{vagrant_config['kubernetes']['installation_method']}"
+puts '#'
+puts '#########################################################################################'
+
+$user = `echo $USER` || `echo $USERNAME`
+$user = $user.to_s.strip
+
+if vagrant_config['kubernetes']['minion_ram'] < 1024
+  puts "Minions should have at least 1024 MB of memory"
+end
+
+$available_master_ips = []
+for i in 0..vagrant_config['kubernetes']['masters'] - 1 do
+  $available_master_ips.push(vagrant_config['kubernetes']['masterIps'][i])
+end
+
+$available_minion_ips = []
+for i in 0..vagrant_config['kubernetes']['minions'] - 1 do
+  $available_minion_ips.push(vagrant_config['kubernetes']['minionIps'][i])
+end
+
+$chef_json = {
+  'kubernetes_chef_cookbook': {
+    'cluster_id': 'aaaa',
+    'installation_method': vagrant_config['kubernetes']['installation_method'],
+    'masters': $available_master_ips,
+    'minions': $available_minion_ips,
+    'kubernetes': {
+      'version': vagrant_config['kubernetes']['version'],
+      'virtual_api_server_ip': vagrant_config['kubernetes']['virtual_api_server_ip']
+    },
+    'root_ca': {
+      'ca': vagrant_config['kubernetes']['ca_path'],
+      'ca_key': vagrant_config['kubernetes']['ca_key_path']
+    }
+  }
+}
+
+Vagrant.configure("2") do |config|
+  # always use Vagrant's insecure key
+  config.ssh.insert_key = false
+  config.ssh.forward_agent = true
+
+  config.vm.provider :virtualbox do |v|
+    # On VirtualBox, we don't have guest additions or a functional vboxsf
+    # in CoreOS, so tell Vagrant that so it can be smarter.
+    v.cpus = 1
+    v.gui = false
+  end
+
+  ["vmware_fusion", "vmware_workstation"].each do |vmware|
+    config.vm.provider vmware do |v|
+      v.vmx['numvcpus'] = 1
+      v.gui = false
+    end
+  end
+
+  # Configure Vagrant to use bento boxes
+  if vagrant_config['general']['provider'] == 'aws'
+    # See https://github.com/mitchellh/vagrant-aws for details on usage
+    puts '####################################################################################'
+    puts '#                                                                                  #'
+    puts '# ==> WARNING!!! Be aware that all servers (yes even nodes!) will get a public IP. #'
+    puts '#                                                                                  #'
+    puts '####################################################################################'
+    config.vm.box = 'aws-dummy'
+    $chef_json[:'kubernetes_chef_cookbook'][:additional_host_entries] = vagrant_config['general']['additional_host_entries']
+  else
+    case vagrant_config['general']['os']
+    when 'ubuntu'
+      config.vm.box = vagrant_config['local']['ubuntu_box']
+    when 'rhel', 'centos'
+      puts '###########################################################################################################'
+      puts '#                                                                                                         #'
+      puts '# ==> WARNING: Using centos as rhel replacement, since there currently is no suitable vagrant box for it! #'
+      puts '#                                                                                                         #'
+      puts '###########################################################################################################'
+      config.vm.box = vagrant_config['local']['centos_box']
+    end
+  end
+
+  config.vm.provider :aws do |aws, override|
+    case vagrant_config['general']['os']
+    when 'ubuntu'
+      aws.ami = vagrant_config['aws']['ubuntu_ami']
+      override.ssh.username = 'ubuntu'
+    when 'rhel', 'centos'
+      aws.ami = vagrant_config['aws']['centos_ami']
+      override.ssh.username = 'centos'
+    end
+    aws.region = vagrant_config['aws']['region']
+    aws.instance_type = vagrant_config['aws']['instance_type']
+    aws.keypair_name = vagrant_config['aws']['key_pair_name']
+    aws.subnet_id = vagrant_config['aws']['subnet']
+    aws.associate_public_ip = vagrant_config['aws']['public_ip']
+    aws.security_groups = vagrant_config['aws']['security_groups']
+    override.ssh.private_key_path = vagrant_config['aws']['key_pair_path']
+  end
+
+  # plugin conflict
+  if Vagrant.has_plugin?("vagrant-vbguest") then
+    config.vbguest.auto_update = false
+  end
+
+  if Vagrant.has_plugin?("vagrant-berkshelf") then
+    # The path to the Berksfile to use. The default value is "Berksfile" if one
+    # exists, or nil if it does not.
+    config.berkshelf.berksfile_path = '../Berksfile'
+
+    # Enable Berkshelf. If a Berksfile exists or a berksfile_path is given, this
+    # value is automatically set to true. If not, the value is false
+    config.berkshelf.enabled = true
+  end
+
+  if Vagrant.has_plugin?("vagrant-proxyconf") && $vpn
+    config.proxy.http     = vagrant_config['environment']['http_proxy']
+    config.proxy.https    = vagrant_config['environment']['https_proxy']
+    config.proxy.no_proxy = vagrant_config['environment']['no_proxy']
+  end
+
+  config.nfs.functional = false
+  config.vm.allowed_synced_folder_types = :rsync
+
+  (1..vagrant_config['kubernetes']['masters']).each do |i|
+    config.vm.define vm_name = "master%d" % i do |master|
+      master.vm.hostname = vm_name
+
+      ["vmware_fusion", "vmware_workstation"].each do |vmware|
+        master.vm.provider vmware do |v|
+          v.vmx['memsize'] = vagrant_config['kubernetes']['master_ram']
+        end
+      end
+
+      master.vm.provider :virtualbox do |vb|
+        vb.memory = vagrant_config['kubernetes']['master_ram']
+      end
+
+      if vagrant_config['general']['provider'] == 'aws'
+        config.vm.provider :aws do |aws, override|
+          aws.tags = { Name: "#{$user}'s Vagrant Kubernetes Testing" }
+          aws.private_ip_address = $available_master_ips[i-1]['ip']
+        end
+      else
+        master.vm.network :private_network, ip: $available_master_ips[i-1]['ip']
+      end
+      master.vm.provision :chef_solo do |chef_master|
+        chef_master.version = vagrant_config['general']['chef_version']
+        chef_master.add_recipe 'kubernetes_chef_cookbook'
+        chef_master.cookbooks_path = '../.'
+        chef_master.json = $chef_json
+      end
+
+    end
+  end
+
+  (1..vagrant_config['kubernetes']['minions']).each do |i|
+    config.vm.define vm_name = "minion%d" % i do |minion|
+      minion.vm.hostname = vm_name
+
+      ["vmware_fusion", "vmware_workstation"].each do |vmware|
+        minion.vm.provider vmware do |v|
+          v.vmx['memsize'] = vagrant_config['kubernetes']['minion_ram']
+        end
+      end
+
+      minion.vm.provider :virtualbox do |vb|
+        vb.memory = vagrant_config['kubernetes']['minion_ram']
+      end
+
+      if vagrant_config['general']['provider'] == 'aws'
+        config.vm.provider :aws do |aws, override|
+          minion_name = "minion%d" % i
+          aws.tags = { Name: "#{$user}'s Vagrant Kubernetes Testing" }
+          aws.private_ip_address = $available_minion_ips[i-1]['ip']
+        end
+      else
+        minion.vm.network :private_network, ip: $available_minion_ips[i-1]['ip']
+      end
+
+      minion.vm.provision :chef_solo do |chef_minion|
+        chef_minion.version = vagrant_config['general']['chef_version']
+        chef_minion.add_recipe 'kubernetes_chef_cookbook'
+        chef_minion.cookbooks_path = '../.'
+        chef_minion.json = $chef_json
+      end
+    end
+  end
+end

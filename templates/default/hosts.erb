@@ -1,0 +1,34 @@
+################################################################################
+#               ___           ___           ___           ___
+#              /\  \         /\  \         /\  \         /\  \
+#             /::\  \        \:\  \       /::\  \       /::\  \
+#            /:/\ \  \        \:\  \     /:/\:\  \     /:/\:\  \
+#           _\:\~\ \  \       /::\  \   /:/  \:\  \   /::\~\:\  \
+#          /\ \:\ \ \__\     /:/\:\__\ /:/__/ \:\__\ /:/\:\ \:\__\
+#          \:\ \:\ \/__/    /:/  \/__/ \:\  \ /:/  / \/__\:\/:/  /
+#           \:\ \:\__\     /:/  /       \:\  /:/  /       \::/  /
+#            \:\/:/  /     \/__/         \:\/:/  /         \/__/
+#             \::/  /                     \::/  /
+#              \/__/                       \/__/
+#
+# This file is managed by Chef!  Manual modifications will be lost on the next
+# chef run.  If you need to make changes to this file, please make them in the
+# cookbook and commit them to source control.
+#
+################################################################################
+
+# Your system has configured 'manage_etc_hosts' as True.
+# As a result, if you wish for changes to this file to persist
+# then you will need to either
+# a.) make changes to the master file in /etc/cloud/templates/hosts.redhat.tmpl
+# b.) change or remove the value of 'manage_etc_hosts' in
+#     /etc/cloud/cloud.cfg or cloud-config from user-data
+
+# The following lines are desirable for IPv4 capable hosts
+<%= @host_entries %>
+127.0.0.1 localhost.localdomain localhost
+#127.0.0.1 localhost4.localdomain4 localhost4
+
+# The following lines are desirable for IPv6 capable hosts
+#::1 localhost.localdomain localhost
+#::1 localhost6.localdomain6 localhost6

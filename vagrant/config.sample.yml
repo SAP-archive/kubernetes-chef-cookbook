@@ -1,0 +1,48 @@
+---
+environment:
+  http_proxy: "http://my.proxy.example.com:8080"
+  https_proxy: "http://my.proxy.example.com:8080"
+  no_proxy: "localhost,127.0.0.1,0.0.0.0"
+
+general:
+  chef_version: 13.6.4
+  os: 'ubuntu'
+  vpn: false
+  provider: local # Could also be aws
+  additional_host_entries: ''
+
+local:
+  ubuntu_box: 'ubuntu_vagrant_box'
+  centos_box: 'centos_vagrant_box'
+
+aws:
+  key_pair_name:
+  key_pair_path:
+  securiy_groups: ['']
+  subnet: ''
+  public_ip: true
+  region: 'us-central-1'
+  instance_type: 't2.small'
+  ubuntu_ami: 'ubuntu_ami'
+  centos_ami: 'centos_ami'
+
+kubernetes:
+  version: latest
+  installation_method: 'source'
+  virtual_api_server_ip: 'ip_for_master'
+  masters: 1 # Currently multi master is not supported
+  master_ram: 3072 # Only used in local VMs
+  masterIps: [
+    { 'name': 'master1', 'ip': 'ip_for_master' }
+  ]
+  minions: 2
+  minion_ram: 3072 # Only used in local VMs
+  minionIps: [
+    { 'name': 'minion1', 'ip': 'ip_for_minion1' }
+    { 'name': 'minion2', 'ip': 'ip_for_minion2' }
+    { 'name': 'minion3', 'ip': 'ip_for_minion3' }
+    { 'name': 'minion4', 'ip': 'ip_for_minion4' }
+    { 'name': 'minion5', 'ip': 'ip_for_minion5' }
+  ]
+  ca_path: "/path/to/ca.pem"
+  ca_key_path: "/path/to/ca-key.pem"

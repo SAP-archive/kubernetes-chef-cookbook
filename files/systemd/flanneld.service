@@ -1,0 +1,37 @@
+################################################################################
+#               ___           ___           ___           ___
+#              /\  \         /\  \         /\  \         /\  \
+#             /::\  \        \:\  \       /::\  \       /::\  \
+#            /:/\ \  \        \:\  \     /:/\:\  \     /:/\:\  \
+#           _\:\~\ \  \       /::\  \   /:/  \:\  \   /::\~\:\  \
+#          /\ \:\ \ \__\     /:/\:\__\ /:/__/ \:\__\ /:/\:\ \:\__\
+#          \:\ \:\ \/__/    /:/  \/__/ \:\  \ /:/  / \/__\:\/:/  /
+#           \:\ \:\__\     /:/  /       \:\  /:/  /       \::/  /
+#            \:\/:/  /     \/__/         \:\/:/  /         \/__/
+#             \::/  /                     \::/  /
+#              \/__/                       \/__/
+#
+# This file is managed by Chef!  Manual modifications will be lost on the next
+# chef run.  If you need to make changes to this file, please make them in the
+# cookbook and commit them to source control.
+#
+################################################################################
+
+
+[Unit]
+Before=docker.service
+After=network-online.target
+Wants=network-online.target
+Description=flannel is an etcd backed overlay network for containers
+
+[Service]
+Type=notify
+EnvironmentFile=/etc/kubernetes/flanneld
+ExecStart=/usr/bin/flanneld \
+	    $FLANNEL_ETCD_ENDPOINTS \
+	    $FLANNEL_ETCD_PREFIX \
+			$FLANNEL_INTERFACE
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

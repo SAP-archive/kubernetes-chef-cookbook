@@ -1,0 +1,31 @@
+*~
+*#
+.#*
+\#*#
+.*.sw[a-z]
+*.un~
+
+# Bundler
+Gemfile.lock
+bin/*
+.bundle/*
+
+# test kitchen
+.kitchen/
+
+# Chef
+Berksfile.lock
+.zero-knife.rb
+Policyfile.lock.json
+
+# Visual Studio Code
+.vscode/*
+
+#MacOS
+.DS_Store
+
+.delivery/*
+
+# vagrant
+.vagrant
+vagrant/config.yml

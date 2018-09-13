@@ -1,0 +1,37 @@
+###
+# kubernetes system config
+################################################################################
+#               ___           ___           ___           ___
+#              /\  \         /\  \         /\  \         /\  \
+#             /::\  \        \:\  \       /::\  \       /::\  \
+#            /:/\ \  \        \:\  \     /:/\:\  \     /:/\:\  \
+#           _\:\~\ \  \       /::\  \   /:/  \:\  \   /::\~\:\  \
+#          /\ \:\ \ \__\     /:/\:\__\ /:/__/ \:\__\ /:/\:\ \:\__\
+#          \:\ \:\ \/__/    /:/  \/__/ \:\  \ /:/  / \/__\:\/:/  /
+#           \:\ \:\__\     /:/  /       \:\  /:/  /       \::/  /
+#            \:\/:/  /     \/__/         \:\/:/  /         \/__/
+#             \::/  /                     \::/  /
+#              \/__/                       \/__/
+#
+# This file is managed by Chef!  Manual modifications will be lost on the next
+# chef run.  If you need to make changes to this file, please make them in the
+# cookbook and commit them to source control.
+#
+################################################################################
+
+# The following values are used to configure various aspects of all
+# kubernetes services, including
+#
+#   kube-apiserver.service
+#   kube-controller-manager.service
+#   kube-scheduler.service
+#   kubelet.service
+#   kube-proxy.service
+
+KUBE_ETCD_SERVERS=<%= @KUBE_ETCD_SERVERS %>
+KUBE_LOG_LEVEL=<%= @KUBE_LOG_LEVEL %>
+KUBE_ALLOW_PRIV=<%= @KUBE_ALLOW_PRIV %>
+KUBE_MASTER=<%= @KUBE_MASTER %>
+<% if !@KUBE_PROXY_ARGS.nil? %>
+KUBE_PROXY_ARGS=<%= @KUBE_PROXY_ARGS  %>
+<% end %>

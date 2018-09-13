@@ -1,0 +1,42 @@
+###
+# kubernetes kubelet (minion) config
+################################################################################
+#               ___           ___           ___           ___
+#              /\  \         /\  \         /\  \         /\  \
+#             /::\  \        \:\  \       /::\  \       /::\  \
+#            /:/\ \  \        \:\  \     /:/\:\  \     /:/\:\  \
+#           _\:\~\ \  \       /::\  \   /:/  \:\  \   /::\~\:\  \
+#          /\ \:\ \ \__\     /:/\:\__\ /:/__/ \:\__\ /:/\:\ \:\__\
+#          \:\ \:\ \/__/    /:/  \/__/ \:\  \ /:/  / \/__\:\/:/  /
+#           \:\ \:\__\     /:/  /       \:\  /:/  /       \::/  /
+#            \:\/:/  /     \/__/         \:\/:/  /         \/__/
+#             \::/  /                     \::/  /
+#              \/__/                       \/__/
+#
+# This file is managed by Chef!  Manual modifications will be lost on the next
+# chef run.  If you need to make changes to this file, please make them in the
+# cookbook and commit them to source control.
+#
+################################################################################
+
+# The address for the info server to serve on (set to 0.0.0.0 or "" for all interfaces)
+<% if !@KUBE_CONFIG.nil? %>
+KUBE_CONFIG=<%= @KUBE_CONFIG %>
+<% end %>
+KUBELET_ADDRESS="--address=0.0.0.0"
+KUBELET_HOSTNAME=<%= @KUBELET_HOSTNAME %>
+<% if !@KUBELET_API_SERVER.nil? %>
+KUBELET_API_SERVER=<%= @KUBELET_API_SERVER %>
+<% end %>
+<% if !@KUBELET_CLUSTER_IP.nil? %>
+KUBELET_DNS="--cluster-dns=<%= @KUBELET_CLUSTER_IP %>"
+<% end %>
+<% if !@KUBELET_CLUSTER_DOMAIN.nil? %>
+KUBELET_DOMAIN="--cluster-domain=<%= @KUBELET_CLUSTER_DOMAIN %>"
+<% end %>
+<% if !@KUBELET_CGROUP_DRIVER.nil? %>
+KUBELET_CGROUP_DRIVER=<%= @KUBELET_CGROUP_DRIVER %>
+<% end %>
+<% if !@KUBELET_ARGS.nil? %>
+KUBELET_ARGS=<%= @KUBELET_ARGS %>
+<% end %>

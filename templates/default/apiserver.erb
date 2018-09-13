@@ -1,0 +1,34 @@
+###
+# kubernetes system config
+################################################################################
+#               ___           ___           ___           ___
+#              /\  \         /\  \         /\  \         /\  \
+#             /::\  \        \:\  \       /::\  \       /::\  \
+#            /:/\ \  \        \:\  \     /:/\:\  \     /:/\:\  \
+#           _\:\~\ \  \       /::\  \   /:/  \:\  \   /::\~\:\  \
+#          /\ \:\ \ \__\     /:/\:\__\ /:/__/ \:\__\ /:/\:\ \:\__\
+#          \:\ \:\ \/__/    /:/  \/__/ \:\  \ /:/  / \/__\:\/:/  /
+#           \:\ \:\__\     /:/  /       \:\  /:/  /       \::/  /
+#            \:\/:/  /     \/__/         \:\/:/  /         \/__/
+#             \::/  /                     \::/  /
+#              \/__/                       \/__/
+#
+# This file is managed by Chef!  Manual modifications will be lost on the next
+# chef run.  If you need to make changes to this file, please make them in the
+# cookbook and commit them to source control.
+#
+################################################################################
+
+#
+# The following values are used to configure the kube-apiserver
+#
+
+# The address on the local server to listen to.
+KUBE_BIND_ADDRESS=<%= @KUBE_BIND_ADDRESS %>
+KUBE_API_ADDRESS=<%= @KUBE_API_ADDRESS %>
+KUBE_API_PORT=<%= @KUBE_API_PORT %>
+KUBELET_PORT=<%= @KUBELET_PORT %>
+KUBE_ETCD_SERVERS=<%= @KUBE_ETCD_SERVERS %>
+KUBE_SERVICE_ADDRESSES=<%= @KUBE_SERVICE_ADDRESSES %>
+KUBE_ADMISSION_CONTROL=<%= @KUBE_ADMISSION_CONTROL %>
+KUBE_API_ARGS=<%= @KUBE_API_ARGS %>
